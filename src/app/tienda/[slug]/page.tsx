@@ -27,6 +27,42 @@ export default function TiendaPage() {
   useEffect(() => {
     async function fetchData() {
       if (!slug) return;
+
+      if (slug === 'demo-shop') {
+        const mockStore = {
+          id: 'demo-id',
+          name: 'Purrfecto Cat Shop',
+          tagline: 'Gatitos con clase para gente con miau',
+          description: 'La tienda líder en felinos y accesorios premium para consentir a tu mejor amigo.',
+          slug: 'demo-shop',
+          primary_color: '#1C1917',
+          accent_color: '#B45309',
+          background_color: '#FAFAF9',
+          font_heading: 'Montserrat',
+          font_body: 'Lora',
+          mode: 'retail' as const,
+          logo_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200',
+          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400'
+        };
+
+        const mockCategories = [
+          { id: 'c1', name: 'Gatitos' },
+          { id: 'c2', name: 'Premium' },
+          { id: 'c3', name: 'Juguetes' }
+        ];
+
+        const mockProducts = [
+          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
+          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image: 'https://images.unsplash.com/photo-1513245535761-06642de99361?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
+          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: { name: 'Juguetes' } }
+        ];
+
+        setStore(mockStore as any);
+        setCategories(mockCategories as any);
+        setProducts(mockProducts as any);
+        setLoading(false);
+        return;
+      }
       
       const db = createClient();
       const { data: storeData, error } = await db
