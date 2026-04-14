@@ -98,7 +98,9 @@ export default function DashboardPage() {
         ];
 
         setStore(mockStore as any);
-        setStoreForm(mockStore);
+        // Map only the fields that storeForm expects
+        const { id, slug, ...formFields } = mockStore;
+        setStoreForm(formFields as any);
         setCategories(mockCategories as any);
         setProducts(mockProducts as any);
         setLoading(false);
