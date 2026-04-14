@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import { login } from '../actions'
 import Link from 'next/link'
-import { Store, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { Store, ArrowRight, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
 export default function LoginPage() {
