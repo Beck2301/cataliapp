@@ -28,7 +28,7 @@ export default function HomePage() {
           <div className="w-9 h-9 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center flex-shrink-0">
             <Store className="w-4.5 h-4.5 text-white" />
           </div>
-          <span className="text-lg font-[var(--font-sans)] hidden sm:inline">Catálogo Digital</span>
+          <span className="text-lg font-[var(--font-sans)] hidden sm:inline">Cataliapp</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -45,16 +45,16 @@ export default function HomePage() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors hidden sm:inline"
+                className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
               >
-                Iniciar sesión
+                Ingresar
               </Link>
-              <div className="w-px h-4 bg-[var(--color-border)] hidden sm:block mx-1" />
+              <div className="w-px h-4 bg-[var(--color-border)] mx-1" />
               <Link
                 href="/register"
-                className="text-sm font-medium bg-[var(--color-text-primary)] text-white px-5 py-2.5 rounded-lg shadow-sm hover:bg-[var(--color-text-primary)]/90 transition-all hover:scale-105"
+                className="text-xs sm:text-sm font-medium bg-[var(--color-text-primary)] text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg shadow-sm hover:bg-[var(--color-text-primary)]/90 transition-all hover:scale-105 whitespace-nowrap"
               >
-                Crear tienda gratis
+                Crear tienda
               </Link>
             </>
           )}
@@ -88,7 +88,7 @@ export default function HomePage() {
                 Crear mi catálogo
               </Link>
               <Link
-                href="/catalogo"
+                href="/tienda/urban-threads"
                 className="inline-flex items-center gap-2 border border-[var(--color-border)] text-[var(--color-text-primary)] px-8 py-4 rounded-lg text-lg hover:bg-[var(--color-surface)] transition-colors"
               >
                 Ver ejemplo
@@ -161,7 +161,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[var(--color-border)] py-8 text-center">
         <p className="text-[var(--color-text-tertiary)] text-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4">
-          <span>© 2025 Catálogo Digital</span>
+          <span>© 2025 Cataliapp</span>
           <span className="hidden sm:inline">·</span>
           <span>Desarrollado por <a href="https://bescobar-git-master-beck23s-projects.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] font-medium transition-colors">Bryan Escobar</a></span>
         </p>

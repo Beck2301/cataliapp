@@ -404,9 +404,11 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
-      {/* Header */}
-      <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between gap-2">
+      {/* Sticky Top Bar (Header + Tabs) */}
+      <div className="sticky top-0 z-30 flex flex-col">
+        {/* Header */}
+        <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+          <div className="max-w-6xl mx-auto w-full px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center flex-shrink-0">
               <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -458,8 +460,8 @@ function DashboardContent() {
       </header>
 
       {/* Tabs */}
-      <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-[65px] sm:top-[73px] z-20">
-        <div className="max-w-6xl mx-auto px-2 sm:px-8 flex justify-around sm:justify-start gap-0">
+      <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+        <div className="max-w-6xl mx-auto w-full px-2 sm:px-8 flex justify-around sm:justify-start gap-0">
           {[
             { id: 'products' as const, icon: Package, label: 'Productos' },
             { id: 'store' as const, icon: Store, label: 'Tienda' },
@@ -480,7 +482,7 @@ function DashboardContent() {
           ))}
         </div>
       </div>
-
+    </div>
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-4 sm:py-6 pb-24 lg:pb-6">
         {/* PRODUCTS TAB */}
