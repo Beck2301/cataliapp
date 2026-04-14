@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, MapPin, Clock, Link2, Search } from 'lucide-react';
+import { ShoppingBag, MapPin, Clock, Search, Check, Filter, ChevronDown } from 'lucide-react';
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
 import ProductCard from '@/components/ProductCard';
 import CartDrawer from '@/components/CartDrawer';
 import { useCart } from '@/lib/cart-context';
@@ -18,6 +26,7 @@ export default function TiendaPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [cartOpen, setCartOpen] = useState(false);
@@ -27,46 +36,6 @@ export default function TiendaPage() {
   useEffect(() => {
     async function fetchData() {
       if (!slug) return;
-
-      if (slug === 'demo-shop') {
-        const mockStore = {
-          id: 'demo-id',
-          name: 'Purrfecto Cat Shop',
-          tagline: 'Gatitos con clase para gente con miau',
-          description: 'La tienda líder en felinos y accesorios premium para consentir a tu mejor amigo.',
-          slug: 'demo-shop',
-          primary_color: '#1C1917',
-          accent_color: '#B45309',
-          background_color: '#FAFAF9',
-          font_heading: 'Montserrat',
-          font_body: 'Lora',
-          mode: 'retail' as const,
-          logo_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200',
-          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400',
-          whatsapp: '79082546',
-          address: 'Calle de los Michis 123, Soyapango',
-          hours: 'Lun - Dom: 9:00 AM - 8:00 PM',
-          instagram: '@purrfecto_shop'
-        };
-
-        const mockCategories = [
-          { id: 'c1', name: 'Gatitos' },
-          { id: 'c2', name: 'Premium' },
-          { id: 'c3', name: 'Juguetes' }
-        ];
-
-        const mockProducts = [
-          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
-          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
-          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image_url: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: { name: 'Juguetes' } }
-        ];
-
-        setStore(mockStore as any);
-        setCategories(mockCategories as any);
-        setProducts(mockProducts as any);
-        setLoading(false);
-        return;
-      }
       
       const db = createClient();
       const { data: storeData, error } = await db
@@ -155,12 +124,12 @@ export default function TiendaPage() {
       />
       <header className="relative">
         <div className="relative h-[45vh] min-h-[300px] max-h-[500px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90 z-10" />
           {store.banner_url ? (
             <img
               src={store.banner_url}
               alt={store.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
           ) : (
             <div 
@@ -174,57 +143,64 @@ export default function TiendaPage() {
           <div className="absolute bottom-0 left-0 right-0 z-20 p-6 md:p-10">
             <div className="max-w-6xl mx-auto">
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 className="text-white"
               >
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-3">
                   {store.logo_url ? (
                     <img
                       src={store.logo_url}
                       alt={store.name}
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover border-2 border-white/30 shadow-xl"
                     />
                   ) : (
                     <div 
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-xl border-2 border-white/20"
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-xl border-2 border-white/30"
                       style={{ backgroundColor: store.primary_color }}
                     >
                       {store.name?.[0] || 'L'}
                     </div>
                   )}
+                  <div>
+                    <h1 
+                      className="text-2xl sm:text-3xl md:text-5xl font-black drop-shadow-xl"
+                      style={{ fontFamily: headingFont }}
+                    >
+                      {store.name}
+                    </h1>
+                    {store.tagline && (
+                      <p className="text-sm md:text-lg text-white/80 font-medium drop-shadow-md mt-1">
+                        {store.tagline}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <h1 
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 drop-shadow-md"
-                  style={{ fontFamily: headingFont }}
-                >
-                  {store.name}
-                </h1>
-                {store.tagline && (
-                  <p className="text-lg md:text-xl text-white/90 font-medium mb-4 drop-shadow-sm">
-                    {store.tagline}
-                  </p>
-                )}
 
-                <div className="flex flex-wrap gap-4 text-sm text-white/80 font-medium">
+                <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-white/80">
                   {store.address && (
-                    <span className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
+                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                      <MapPin className="w-3 h-3" />
                       {store.address}
                     </span>
                   )}
                   {store.hours && (
-                    <span className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                      <Clock className="w-3 h-3" />
                       {store.hours}
                     </span>
                   )}
                   {store.instagram && (
-                    <span className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer">
-                      <Link2 className="w-4 h-4" />
+                    <a 
+                      href={`https://instagram.com/${store.instagram.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm hover:bg-white/20 transition-colors"
+                    >
+                      <InstagramIcon className="w-3 h-3" />
                       {store.instagram}
-                    </span>
+                    </a>
                   )}
                 </div>
               </motion.div>
@@ -251,7 +227,7 @@ export default function TiendaPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-[var(--color-text-secondary)] text-center max-w-2xl mx-auto mb-12 text-lg font-medium"
+            className="text-[var(--color-text-secondary)] text-center max-w-2xl mx-auto mb-8 md:mb-12 text-sm md:text-lg font-medium px-2"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             {store.description}
@@ -259,33 +235,56 @@ export default function TiendaPage() {
         )}
 
         {categories.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex justify-center mb-12"
-          >
-            <div className="flex overflow-x-auto pb-4 sm:pb-0 sm:flex-wrap justify-start sm:justify-center gap-3 no-scrollbar snap-x touch-pan-x w-full">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2.5 text-sm font-semibold rounded-full shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 whitespace-nowrap snap-start ${
-                    activeCategory === cat
-                      ? 'text-white scale-105'
-                      : 'bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:scale-105'
-                  }`}
-                  style={
-                    activeCategory === cat
-                      ? { backgroundColor: 'var(--color-text-primary)' }
-                      : {}
-                  }
-                >
-                  {cat}
-                </button>
-              ))}
+          <div className="flex justify-center mb-10 px-4 sm:px-0">
+            <div className="relative w-full max-w-xs">
+              <button
+                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                className="w-full flex items-center justify-between px-5 py-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm font-medium text-[var(--color-text-primary)] hover:border-[var(--color-text-tertiary)] transition-colors"
+              >
+                <span className="tracking-wide">{activeCategory}</span>
+                <ChevronDown className={`w-4 h-4 text-[var(--color-text-tertiary)] transition-transform duration-300 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isCategoryOpen && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-30"
+                      onClick={() => setIsCategoryOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 right-0 z-40 mt-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg overflow-hidden"
+                    >
+                      {allCategories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            setActiveCategory(cat);
+                            setIsCategoryOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-5 py-3 text-sm text-left transition-colors ${
+                            activeCategory === cat
+                              ? 'bg-[var(--color-surface-elevated)] font-semibold text-[var(--color-text-primary)]'
+                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)]'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${activeCategory === cat ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: 'var(--color-accent)' }} />
+                          {cat}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <AnimatePresence mode="wait">

@@ -73,7 +73,7 @@ export default function ProductDetailModal({
 
             <div className="overflow-y-auto flex-1">
               {/* Image */}
-              <div className="aspect-square md:aspect-[16/9] relative bg-[var(--color-surface-elevated)]">
+              <div className="aspect-[4/3] md:aspect-[16/9] relative bg-[var(--color-surface-elevated)]">
                 <img
                   src={product.image_url || ''}
                   alt={product.name}
@@ -82,18 +82,18 @@ export default function ProductDetailModal({
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-5">
+              <div className="p-5 space-y-4">
                 <div>
                   {product.category && (
-                    <span className="text-sm uppercase tracking-widest text-[var(--color-text-tertiary)]">
+                    <span className="text-xs uppercase tracking-widest text-[var(--color-text-tertiary)]">
                       {product.category.name}
                     </span>
                   )}
-                  <h2 className="text-3xl md:text-4xl font-[var(--font-sans)] mt-2">
+                  <h2 className="text-xl sm:text-2xl font-[var(--font-sans)] mt-1">
                     {product.name}
                   </h2>
                   {product.description && (
-                    <p className="text-base text-[var(--color-text-secondary)] mt-3 leading-relaxed">
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-2 leading-relaxed">
                       {product.description}
                     </p>
                   )}
@@ -135,13 +135,13 @@ export default function ProductDetailModal({
                 ))}
 
                 {/* Price & Quantity */}
-                <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)]">
                   <div>
-                    <p className="text-3xl font-medium" style={{ color: 'var(--color-accent)' }}>
+                    <p className="text-xl sm:text-2xl font-medium" style={{ color: 'var(--color-accent)' }}>
                       ${totalPrice.toFixed(2)}
                     </p>
                     {extraPrice > 0 && (
-                      <p className="text-sm text-[var(--color-text-tertiary)]">
+                      <p className="text-xs text-[var(--color-text-tertiary)]">
                         ${product.price.toFixed(2)} + ${extraPrice.toFixed(2)} extras
                       </p>
                     )}
@@ -150,16 +150,16 @@ export default function ProductDetailModal({
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      className="w-9 h-9 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="text-xl w-8 text-center font-medium">
+                    <span className="text-lg w-6 text-center font-medium">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      className="w-9 h-9 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

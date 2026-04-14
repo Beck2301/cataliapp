@@ -9,7 +9,6 @@ import {
   MessageSquare, TrendingUp, ShoppingBag, AlertTriangle, LogOut
 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { fetchAnalytics } from '@/lib/analytics';
 import QRModal from '@/components/QRModal';
 import { createCategory, updateCategory, deleteCategory } from '../(auth)/actions';
@@ -58,8 +57,6 @@ function DashboardContent() {
   const [storeSaving, setStoreSaving] = useState(false);
   const [storeSaved, setStoreSaved] = useState(false);
 
-  const searchParams = useSearchParams();
-  const isDemoMode = searchParams.get('demo') === 'true';
 
   const catalogUrl = typeof window !== 'undefined' && store
     ? `${window.location.origin}/tienda/${store.slug}`
@@ -77,45 +74,6 @@ function DashboardContent() {
          return;
       }
 
-      if (isDemoMode || user.email === 'demo@cataliapp.com') {
-        // Load Mock Data for Demo
-        const mockStore = {
-          id: 'demo-id',
-          name: 'Purrfecto Cat Shop',
-          tagline: 'Gatitos con clase para gente con miau',
-          description: 'La tienda líder en felinos y accesorios premium para consentir a tu mejor amigo.',
-          slug: 'demo-shop',
-          primary_color: '#1C1917',
-          accent_color: '#B45309',
-          background_color: '#FAFAF9',
-          font_heading: 'Montserrat',
-          font_body: 'Lora',
-          mode: 'retail' as const,
-          logo_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200',
-          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400'
-        };
-
-        const mockCategories = [
-          { id: 'c1', name: 'Gatitos', store_id: 'demo-id' },
-          { id: 'c2', name: 'Premium', store_id: 'demo-id' },
-          { id: 'c3', name: 'Juguetes', store_id: 'demo-id' }
-        ];
-
-        const mockProducts = [
-          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
-          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
-          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image_url: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: mockCategories[2] }
-        ];
-
-        setStore(mockStore as any);
-        // Map only the fields that storeForm expects
-        const { id, slug, ...formFields } = mockStore;
-        setStoreForm(formFields as any);
-        setCategories(mockCategories as any);
-        setProducts(mockProducts as any);
-        setLoading(false);
-        return;
-      }
 
       const { data: storeData } = await d
         .from('stores')
@@ -167,7 +125,7 @@ function DashboardContent() {
       setLoading(false);
     }
     fetchData();
-  }, [isDemoMode]);
+  }, []);
 
   const [isUploading, setIsUploading] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -338,10 +296,7 @@ function DashboardContent() {
   };
 
   const handleToggleAvailability = async (id: string, currentStatus: boolean) => {
-    if (isDemoMode) {
-      alert('¡Estás en Modo Demo! Regístrate para gestionar disponibilidad.');
-      return;
-    }
+
     const db = await getDb();
     const { error } = await (db as any)
       .from('products')
@@ -420,11 +375,7 @@ function DashboardContent() {
     if (!store?.id) return;
     setStoreSaving(true);
     setStoreSaved(false);
-    if (isDemoMode) {
-      alert('¡Estás en Modo Demo! Regístrate para guardar tus propios cambios.');
-      setStoreSaving(false);
-      return;
-    }
+
     const db = await getDb();
     const { error } = await (db as any)
       .from('stores')
@@ -824,7 +775,7 @@ function DashboardContent() {
                           </div>
                           <button 
                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('logo_url'); }}
-                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-30 shadow-lg"
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-30 shadow-lg"
                              title="Eliminar logo"
                           >
                              <Trash2 className="w-3.5 h-3.5" />
@@ -847,7 +798,7 @@ function DashboardContent() {
                           </div>
                           <button 
                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('banner_url'); }}
-                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-30 shadow-lg"
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-30 shadow-lg"
                              title="Eliminar portada"
                           >
                              <Trash2 className="w-3.5 h-3.5" />

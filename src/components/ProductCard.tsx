@@ -51,21 +51,24 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
             loading="lazy"
           />
 
-          {/* Category Badge */}
-          {product.category && (
-            <span className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm text-xs uppercase tracking-widest text-[var(--color-text-secondary)]">
-              {product.category.name}
-            </span>
-          )}
+          {/* Top Left Badges (Stacked) */}
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 items-start z-10 w-[calc(100%-16px)]">
+            {product.category && (
+              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-white/90 backdrop-blur-sm uppercase tracking-widest text-[var(--color-text-secondary)] shadow-sm max-w-full truncate">
+                {product.category.name}
+              </span>
+            )}
+            {product.is_available !== false && product.compare_at_price && product.compare_at_price > product.price && (
+              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-[var(--color-error)] text-white uppercase tracking-widest font-medium shadow-sm max-w-full truncate">
+                Oferta
+              </span>
+            )}
+          </div>
 
-          {/* Availability/Sale Badge */}
-          {product.is_available === false ? (
+          {/* Availability/Sale Badge in Center */}
+          {product.is_available === false && (
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 bg-black/60 backdrop-blur-md text-white text-xs uppercase tracking-[0.2em] font-bold border border-white/20 whitespace-nowrap z-10 rotate-[-5deg]">
               Agotado
-            </span>
-          ) : product.compare_at_price && product.compare_at_price > product.price && (
-            <span className="absolute top-3 right-3 px-2 py-1 bg-[var(--color-error)] text-white text-xs uppercase tracking-widest font-medium">
-              Oferta
             </span>
           )}
 
@@ -73,10 +76,10 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
           {product.is_available !== false && (
             <button
               onClick={handleQuickAdd}
-              className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all z-10 ${
                 added
                   ? 'bg-[var(--color-success)] text-white scale-110'
-                  : 'bg-white/90 backdrop-blur-sm text-[var(--color-text-primary)] opacity-0 group-hover:opacity-100 hover:bg-white hover:scale-110'
+                  : 'bg-white/90 backdrop-blur-sm text-[var(--color-text-primary)] opacity-100 sm:opacity-0 group-hover:opacity-100 hover:bg-white hover:scale-110 shadow-sm'
               }`}
             >
               {added ? (
@@ -96,23 +99,23 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
         </div>
 
         {/* Product Info */}
-        <div className="mt-4 space-y-2">
-          <h3 className="font-[var(--font-sans)] text-2xl text-[var(--color-text-primary)] leading-tight">
+        <div className="mt-3 space-y-1.5">
+          <h3 className="font-[var(--font-sans)] text-sm sm:text-lg text-[var(--color-text-primary)] leading-snug">
             {product.name}
           </h3>
 
           {product.description && (
-            <p className="text-base text-[var(--color-text-tertiary)] line-clamp-2">
+            <p className="text-[10px] sm:text-sm leading-tight text-[var(--color-text-tertiary)] font-light opacity-90 line-clamp-2">
               {product.description}
             </p>
           )}
 
           <div className="flex items-center gap-2 pt-1">
-            <p className="text-xl font-medium" style={{ color: 'var(--color-accent)' }}>
+            <p className="text-sm sm:text-lg font-medium" style={{ color: 'var(--color-accent)' }}>
               ${product.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
             </p>
             {product.compare_at_price && product.compare_at_price > product.price && (
-              <span className="text-base text-[var(--color-text-tertiary)] line-through">
+              <span className="text-[11px] sm:text-sm text-[var(--color-text-tertiary)] line-through">
                 ${product.compare_at_price.toFixed(2)}
               </span>
             )}
