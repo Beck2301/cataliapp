@@ -42,7 +42,11 @@ export default function TiendaPage() {
           font_body: 'Lora',
           mode: 'retail' as const,
           logo_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200',
-          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400'
+          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400',
+          whatsapp: '79082546',
+          address: 'Calle de los Michis 123, Soyapango',
+          hours: 'Lun - Dom: 9:00 AM - 8:00 PM',
+          instagram: '@purrfecto_shop'
         };
 
         const mockCategories = [
@@ -52,9 +56,9 @@ export default function TiendaPage() {
         ];
 
         const mockProducts = [
-          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
-          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image: 'https://images.unsplash.com/photo-1513245535761-06642de99361?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
-          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: { name: 'Juguetes' } }
+          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
+          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: { name: 'Gatitos' } },
+          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image_url: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: { name: 'Juguetes' } }
         ];
 
         setStore(mockStore as any);
@@ -93,7 +97,6 @@ export default function TiendaPage() {
         .from('products')
         .select('*, category:categories(*)')
         .eq('store_id', storeData.id)
-        .eq('is_available', true)
         .order('display_order');
 
       setProducts((prods || []) as Product[]);
@@ -145,10 +148,11 @@ export default function TiendaPage() {
       className="min-h-screen bg-[var(--color-bg)] transition-colors duration-500"
       style={{ fontFamily: bodyFont }}
     >
-      {/* Inject Google Fonts dynamically */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}:wght@700&family=${bodyFont.replace(' ', '+')}:wght@400;500;600&display=swap');
-      `}} />
+      {/* Inject Google Fonts dynamically more reliably */}
+      <link 
+        rel="stylesheet" 
+        href={`https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}:wght@700&family=${bodyFont.replace(' ', '+')}:wght@400;500;600&display=swap`} 
+      />
       <header className="relative">
         <div className="relative h-[45vh] min-h-[300px] max-h-[500px] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
@@ -261,12 +265,12 @@ export default function TiendaPage() {
             transition={{ delay: 0.4 }}
             className="flex justify-center mb-12"
           >
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex overflow-x-auto pb-4 sm:pb-0 sm:flex-wrap justify-start sm:justify-center gap-3 no-scrollbar snap-x touch-pan-x w-full">
               {allCategories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2.5 text-sm font-semibold rounded-full shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 ${
+                  className={`px-6 py-2.5 text-sm font-semibold rounded-full shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 whitespace-nowrap snap-start ${
                     activeCategory === cat
                       ? 'text-white scale-105'
                       : 'bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:scale-105'

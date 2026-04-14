@@ -102,9 +102,9 @@ function DashboardContent() {
         ];
 
         const mockProducts = [
-          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
-          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image: 'https://images.unsplash.com/photo-1513245535761-06642de99361?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
-          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: mockCategories[2] }
+          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
+          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
+          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image_url: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: mockCategories[2] }
         ];
 
         setStore(mockStore as any);
@@ -337,6 +337,22 @@ function DashboardContent() {
     setShowForm(false);
   };
 
+  const handleToggleAvailability = async (id: string, currentStatus: boolean) => {
+    if (isDemoMode) {
+      alert('¡Estás en Modo Demo! Regístrate para gestionar disponibilidad.');
+      return;
+    }
+    const db = await getDb();
+    const { error } = await (db as any)
+      .from('products')
+      .update({ is_available: !currentStatus })
+      .eq('id', id);
+
+    if (!error) {
+       setProducts(products.map(p => p.id === id ? { ...p, is_available: !currentStatus } : p));
+    }
+  };
+
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
@@ -439,49 +455,51 @@ function DashboardContent() {
     <div className="min-h-screen bg-[var(--color-bg)]">
       {/* Header */}
       <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center">
-              <Store className="w-5 h-5 text-white" />
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center flex-shrink-0">
+              <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-[var(--font-sans)]">{store?.name}</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">Panel de administración</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-2xl font-[var(--font-sans)] truncate leading-tight">{store?.name}</h1>
+              <p className="hidden sm:block text-sm text-[var(--color-text-tertiary)]">Panel de administración</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => setQrOpen(true)}
               className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] rounded-lg transition-colors"
               title="Código QR"
             >
-              <QrCode className="w-5 h-5" />
+              <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 text-base text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] transition-colors px-3 py-2 rounded-lg hover:bg-[var(--color-accent-subtle)]"
+              className="flex items-center gap-2 text-base text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] transition-colors px-2 sm:px-3 py-2 rounded-lg hover:bg-[var(--color-accent-subtle)]"
+              title="Compartir"
             >
-              {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-              <span className="hidden sm:inline">{copied ? '¡Copiado!' : 'Compartir'}</span>
+              {copied ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+              <span className="hidden md:inline font-medium">{copied ? '¡Copiado!' : 'Compartir'}</span>
             </button>
             <Link
               href={catalogUrl || '/catalogo'}
               target="_blank"
-              className="flex items-center gap-2 text-base text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors px-3 py-2 rounded-lg hover:bg-[var(--color-surface-elevated)]"
+              className="flex items-center gap-2 text-base text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors px-2 sm:px-3 py-2 rounded-lg hover:bg-[var(--color-surface-elevated)]"
+              title="Ver catálogo"
             >
-              <ExternalLink className="w-4 h-4" />
-              <span className="hidden sm:inline">Ver catálogo</span>
+              <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden md:inline font-medium">Ver catálogo</span>
             </Link>
-            <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
+            <div className="w-px h-5 bg-[var(--color-border)] mx-1 hidden sm:block" />
             <button
                onClick={handleLogout}
                className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-lg transition-colors"
                title="Cerrar sesión"
             >
-               <LogOut className="w-5 h-5" />
+               <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <div className="w-8 h-8 bg-[var(--color-accent-subtle)] rounded-full flex items-center justify-center text-[var(--color-accent)] text-base font-medium">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-accent-subtle)] rounded-full flex items-center justify-center text-[var(--color-accent)] text-sm sm:text-base font-medium border border-[var(--color-accent-subtle)]">
               {store?.name?.[0] || 'L'}
             </div>
           </div>
@@ -489,8 +507,8 @@ function DashboardContent() {
       </header>
 
       {/* Tabs */}
-      <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 flex gap-0 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)] sticky top-[65px] sm:top-[73px] z-20">
+        <div className="max-w-6xl mx-auto px-2 sm:px-8 flex justify-around sm:justify-start gap-0">
           {[
             { id: 'products' as const, icon: Package, label: 'Productos' },
             { id: 'store' as const, icon: Store, label: 'Tienda' },
@@ -499,14 +517,14 @@ function DashboardContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-base border-b-2 transition-colors whitespace-nowrap ${
+              className={`flex items-center justify-center gap-2 px-3 sm:px-6 py-3 text-sm sm:text-base border-b-2 transition-colors whitespace-nowrap flex-1 sm:flex-none ${
                 activeTab === tab.id
-                  ? 'border-[var(--color-text-primary)] text-[var(--color-text-primary)]'
-                  : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
+                  ? 'border-[var(--color-text-primary)] text-[var(--color-text-primary)] font-bold'
+                  : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -585,26 +603,26 @@ function DashboardContent() {
                           </>
                         )}
                       </div>
-                      <div className="mt-2 flex items-center justify-between">
-                         <span className="text-sm text-[var(--color-text-tertiary)]">O pega un link manualmente:</span>
-                         <input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." className="flex-1 ml-2 px-2 py-1 border border-[var(--color-border)] rounded-md text-sm focus:outline-none" />
+                      <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                         <span className="text-xs sm:text-sm text-[var(--color-text-tertiary)] font-medium uppercase tracking-wider">O pega un link manualmente:</span>
+                         <input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." className="flex-1 w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--color-text-primary)]" />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-base text-[var(--color-text-secondary)] mb-2">Nombre</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide">Nombre</label>
                       <input
                         type="text"
                         placeholder="Nombre del producto"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-tertiary)]"
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-primary)]"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-base text-[var(--color-text-secondary)] mb-2">Precio</label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide">Precio</label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                           <input
@@ -612,12 +630,12 @@ function DashboardContent() {
                             placeholder="0.00"
                             value={formData.price}
                             onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            className="w-full pl-9 pr-3 py-2 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-tertiary)]"
+                            className="w-full pl-9 pr-3 py-2.5 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-primary)]"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-base text-[var(--color-text-secondary)] mb-2">Precio tachado (opcional)</label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide">Precio tachado (opcional)</label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                           <input
@@ -625,7 +643,7 @@ function DashboardContent() {
                             placeholder="0.00"
                             value={formData.compare_at_price}
                             onChange={(e) => setFormData({ ...formData, compare_at_price: e.target.value })}
-                            className="w-full pl-9 pr-3 py-2 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-tertiary)]"
+                            className="w-full pl-9 pr-3 py-2.5 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-primary)]"
                           />
                         </div>
                       </div>
@@ -755,6 +773,9 @@ function DashboardContent() {
                     </div>
                     {/* Desktop edit/delete buttons */}
                     <div className="hidden sm:flex flex-col items-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleToggleAvailability(product.id, product.is_available ?? true)} className={`p-1.5 rounded-lg transition-colors ${ (product.is_available ?? true) ? 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)]' : 'text-amber-600 bg-amber-50' }`} title={(product.is_available ?? true) ? 'Marcar como agotado' : 'Marcar como disponible'}>
+                        <AlertTriangle className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleEdit(product)} className="p-1.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" />
                       </button>
@@ -765,6 +786,9 @@ function DashboardContent() {
                   </div>
                   {/* Mobile actions bar */}
                   <div className="sm:hidden flex items-center justify-end gap-1 px-3 pb-2 pt-0 border-t border-[var(--color-border-subtle)]">
+                    <button onClick={() => handleToggleAvailability(product.id, product.is_available ?? true)} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors ${ (product.is_available ?? true) ? 'text-[var(--color-text-secondary)]' : 'text-amber-700 font-bold' }`}>
+                      <AlertTriangle className="w-3.5 h-3.5" /> {(product.is_available ?? true) ? 'En stock' : 'Agotado'}
+                    </button>
                     <button onClick={() => handleEdit(product)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
                       <Pencil className="w-3.5 h-3.5" /> Editar
                     </button>
@@ -870,26 +894,26 @@ function DashboardContent() {
                       <X className="w-3 h-3" /> <span className="hidden sm:inline">Resetear</span> diseño
                     </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                    <div>
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1">Texto Principal</label>
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <input type="color" value={storeForm.primary_color} onChange={(e) => setStoreForm({ ...storeForm, primary_color: e.target.value })} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
-                        <span className="text-xs text-[var(--color-text-secondary)] font-mono truncate">{storeForm.primary_color}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
+                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Texto Principal</label>
+                      <div className="flex items-center gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.primary_color} onChange={(e) => setStoreForm({ ...storeForm, primary_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                        <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.primary_color}</span>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1">Color de precios</label>
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <input type="color" value={storeForm.accent_color} onChange={(e) => setStoreForm({ ...storeForm, accent_color: e.target.value })} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
-                        <span className="text-xs text-[var(--color-text-secondary)] font-mono truncate">{storeForm.accent_color}</span>
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
+                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Color de precios</label>
+                      <div className="flex items-center gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.accent_color} onChange={(e) => setStoreForm({ ...storeForm, accent_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                        <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.accent_color}</span>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1">Fondo App</label>
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <input type="color" value={storeForm.background_color} onChange={(e) => setStoreForm({ ...storeForm, background_color: e.target.value })} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
-                        <span className="text-xs text-[var(--color-text-secondary)] font-mono truncate">{storeForm.background_color}</span>
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
+                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Fondo App</label>
+                      <div className="flex items-center gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.background_color} onChange={(e) => setStoreForm({ ...storeForm, background_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                        <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.background_color}</span>
                       </div>
                     </div>
                   </div>
@@ -900,13 +924,13 @@ function DashboardContent() {
                   <label className="flex items-center gap-2 text-sm sm:text-base font-medium text-[var(--color-text-primary)] mb-2 sm:mb-3 mt-3 sm:mt-4">
                     <span className="font-serif italic font-bold text-base sm:text-lg">Aa</span> Tipografía
                   </label>
-                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
                     <div>
-                      <label className="block text-xs sm:text-sm text-[var(--color-text-tertiary)] mb-1">Títulos</label>
+                      <label className="block text-sm text-[var(--color-text-tertiary)] mb-1">Títulos (Google Fonts)</label>
                       <select 
                         value={storeForm.font_heading} 
                         onChange={(e) => setStoreForm({ ...storeForm, font_heading: e.target.value })} 
-                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
                         style={{ fontFamily: storeForm.font_heading }}
                       >
                         <optgroup label="Sans Serif (Moderno)">
@@ -923,11 +947,11 @@ function DashboardContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm text-[var(--color-text-tertiary)] mb-1">Cuerpo textual</label>
+                      <label className="block text-sm text-[var(--color-text-tertiary)] mb-1">Cuerpo textual (Párrafos)</label>
                       <select 
                         value={storeForm.font_body} 
                         onChange={(e) => setStoreForm({ ...storeForm, font_body: e.target.value })} 
-                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        className="w-full px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
                         style={{ fontFamily: storeForm.font_body }}
                       >
                         <optgroup label="Sans Serif">
@@ -946,25 +970,25 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-xs sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Dirección</label>
-                    <input type="text" value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Dirección</label>
+                    <input type="text" value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Horario</label>
-                    <input type="text" value={storeForm.hours} onChange={(e) => setStoreForm({ ...storeForm, hours: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Horario</label>
+                    <input type="text" value={storeForm.hours} onChange={(e) => setStoreForm({ ...storeForm, hours: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-xs sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Instagram</label>
-                    <input type="text" value={storeForm.instagram} onChange={(e) => setStoreForm({ ...storeForm, instagram: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Instagram</label>
+                    <input type="text" value={storeForm.instagram} onChange={(e) => setStoreForm({ ...storeForm, instagram: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">WhatsApp</label>
-                    <input type="text" value={storeForm.whatsapp} onChange={(e) => setStoreForm({ ...storeForm, whatsapp: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">WhatsApp</label>
+                    <input type="text" value={storeForm.whatsapp} onChange={(e) => setStoreForm({ ...storeForm, whatsapp: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                 </div>
 

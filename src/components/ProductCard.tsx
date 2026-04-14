@@ -45,7 +45,9 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
           <img
             src={product.image_url || ''}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+              product.is_available === false ? 'grayscale opacity-60' : ''
+            }`}
             loading="lazy"
           />
 
@@ -56,35 +58,41 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
             </span>
           )}
 
-          {/* Sale Badge */}
-          {product.compare_at_price && product.compare_at_price > product.price && (
+          {/* Availability/Sale Badge */}
+          {product.is_available === false ? (
+            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 bg-black/60 backdrop-blur-md text-white text-xs uppercase tracking-[0.2em] font-bold border border-white/20 whitespace-nowrap z-10 rotate-[-5deg]">
+              Agotado
+            </span>
+          ) : product.compare_at_price && product.compare_at_price > product.price && (
             <span className="absolute top-3 right-3 px-2 py-1 bg-[var(--color-error)] text-white text-xs uppercase tracking-widest font-medium">
               Oferta
             </span>
           )}
 
           {/* Quick Add Button */}
-          <button
-            onClick={handleQuickAdd}
-            className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-              added
-                ? 'bg-[var(--color-success)] text-white scale-110'
-                : 'bg-white/90 backdrop-blur-sm text-[var(--color-text-primary)] opacity-0 group-hover:opacity-100 hover:bg-white hover:scale-110'
-            }`}
-          >
-            {added ? (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </motion.div>
-            ) : (
-              <Plus className="w-5 h-5" />
-            )}
-          </button>
+          {product.is_available !== false && (
+            <button
+              onClick={handleQuickAdd}
+              className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                added
+                  ? 'bg-[var(--color-success)] text-white scale-110'
+                  : 'bg-white/90 backdrop-blur-sm text-[var(--color-text-primary)] opacity-0 group-hover:opacity-100 hover:bg-white hover:scale-110'
+              }`}
+            >
+              {added ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </motion.div>
+              ) : (
+                <Plus className="w-5 h-5" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Product Info */}

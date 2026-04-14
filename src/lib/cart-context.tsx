@@ -158,8 +158,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // fail silently
     }
 
+    // Clean phone number (remove any non-digit characters)
+    const cleanPhone = store.whatsapp ? store.whatsapp.replace(/\D/g, '') : '';
+
+    if (!cleanPhone) {
+      alert('Este negocio aún no ha configurado un número de WhatsApp.');
+      return;
+    }
+
     window.open(
-      `https://wa.me/${store.whatsapp}?text=${encodeURIComponent(message)}`,
+      `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`,
       '_blank'
     );
 
