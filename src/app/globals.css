@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ===== Color Palette - Minimal Luxury ===== */
+  --color-bg: #FAFAF9;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #F5F5F4;
+  
+  /* Warm neutrals */
+  --color-text-primary: #1C1917;
+  --color-text-secondary: #78716C;
+  --color-text-tertiary: #A8A29E;
+  
+  /* Borders & dividers */
+  --color-border: #E7E5E4;
+  --color-border-subtle: #F5F5F4;
+  
+  /* Accent - warm gold/bronze */
+  --color-accent: #B45309;
+  --color-accent-hover: #92400E;
+  --color-accent-subtle: #FEF3C7;
+  
+  /* Success / Error states */
+  --color-success: #059669;
+  --color-error: #DC2626;
+  
+  /* ===== Typography ===== */
+  --font-sans: 'Plus Jakarta Sans', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* ===== Spacing scale ===== */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+  
+  /* ===== Border radius ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* ===== Shadows ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.10);
+}
+
+/* ===== Base Reset ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  margin: 0;
+  min-height: 100vh;
+  line-height: 1.6;
+  font-size: 18px;
+}
+
+/* ===== Typography Utilities ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* ===== Smooth transitions ===== */
+a, button {
+  transition: all 0.2s ease;
+}
+
+/* ===== Selection color ===== */
+::selection {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+/* ===== Scrollbar styling ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
