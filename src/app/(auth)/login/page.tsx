@@ -141,11 +141,31 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-[var(--color-text-primary)] hover:bg-[var(--color-text-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-text-primary)] transition-colors group"
+                disabled={pending}
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[var(--color-text-primary)] hover:bg-[var(--color-text-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-text-primary)] disabled:opacity-50 transition-colors"
               >
-                Entrar
-                <ArrowRight className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                {pending ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Iniciar Sesión'
+                )}
               </button>
+            </div>
+
+            <Link
+              href="/dashboard?demo=true"
+              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-[var(--color-border)] rounded-lg shadow-sm text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-elevated)] transition-colors"
+            >
+              <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
+              Probar Demo Instantánea
+            </Link>
+
+            <div className="mt-6 p-4 bg-[var(--color-surface-elevated)] rounded-xl border border-[var(--color-border)] text-center">
+              <p className="text-xs text-[var(--color-text-tertiary)] uppercase tracking-widest font-bold mb-2">Cuenta de Acceso Demo</p>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium text-[var(--color-text-primary)]">demo@cataliapp.com</p>
+                <p className="text-xs text-[var(--color-text-tertiary)]">Contraseña: <span className="font-mono text-[var(--color-text-secondary)]">password123</span></p>
+              </div>
             </div>
           </form>
         </div>

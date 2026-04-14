@@ -9,6 +9,7 @@ import {
   MessageSquare, TrendingUp, ShoppingBag, AlertTriangle, LogOut
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { fetchAnalytics } from '@/lib/analytics';
 import QRModal from '@/components/QRModal';
 import { createCategory, updateCategory, deleteCategory } from '../(auth)/actions';
@@ -42,10 +43,13 @@ export default function DashboardPage() {
     name: '', tagline: '', description: '', address: '', hours: '',
     instagram: '', whatsapp: '', primary_color: '', accent_color: '',
     background_color: '', mode: 'retail' as 'retail' | 'restaurant',
-    logo_url: '', banner_url: '', font_heading: 'sans', font_body: 'sans'
+    logo_url: '', banner_url: '', font_heading: 'Montserrat', font_body: 'Lora'
   });
   const [storeSaving, setStoreSaving] = useState(false);
   const [storeSaved, setStoreSaved] = useState(false);
+
+  const searchParams = useSearchParams();
+  const isDemoMode = searchParams.get('demo') === 'true';
 
   const catalogUrl = typeof window !== 'undefined' && store
     ? `${window.location.origin}/tienda/${store.slug}`
@@ -61,6 +65,44 @@ export default function DashboardPage() {
       if (!user) {
          window.location.href = '/login';
          return;
+      }
+
+      if (isDemoMode || user.email === 'demo@cataliapp.com') {
+        // Load Mock Data for Demo
+        const mockStore = {
+          id: 'demo-id',
+          name: 'Purrfecto Cat Shop',
+          tagline: 'Gatitos con clase para gente con miau',
+          description: 'La tienda líder en felinos y accesorios premium para consentir a tu mejor amigo.',
+          slug: 'demo-shop',
+          primary_color: '#1C1917',
+          accent_color: '#B45309',
+          background_color: '#FAFAF9',
+          font_heading: 'Montserrat',
+          font_body: 'Lora',
+          mode: 'retail' as const,
+          logo_url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=200&h=200',
+          banner_url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200&h=400'
+        };
+
+        const mockCategories = [
+          { id: 'c1', name: 'Gatitos', store_id: 'demo-id' },
+          { id: 'c2', name: 'Premium', store_id: 'demo-id' },
+          { id: 'c3', name: 'Juguetes', store_id: 'demo-id' }
+        ];
+
+        const mockProducts = [
+          { id: 'p1', name: 'Michi Naranja', price: 250, description: 'Tierno y muy juguetón.', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
+          { id: 'p2', name: 'Gatito Gris', price: 320, description: 'Elegancia pura en cuatro patas.', image: 'https://images.unsplash.com/photo-1513245535761-06642de99361?auto=format&fit=crop&q=80&w=400', category_id: 'c1', category: mockCategories[0] },
+          { id: 'p3', name: 'Rascador Tower', price: 85, description: 'Diversión infinita asegurada.', image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&q=80&w=400', category_id: 'c3', category: mockCategories[2] }
+        ];
+
+        setStore(mockStore as any);
+        setStoreForm(mockStore);
+        setCategories(mockCategories as any);
+        setProducts(mockProducts as any);
+        setLoading(false);
+        return;
       }
 
       const { data: storeData } = await d
@@ -86,8 +128,8 @@ export default function DashboardPage() {
           mode: storeData.mode || 'retail',
           logo_url: storeData.logo_url || '',
           banner_url: storeData.banner_url || '',
-          font_heading: storeData.font_heading || 'sans',
-          font_body: storeData.font_body || 'sans',
+          font_heading: storeData.font_heading === 'sans' || !storeData.font_heading ? 'Montserrat' : storeData.font_heading,
+          font_body: storeData.font_body === 'sans' || !storeData.font_body ? 'Lora' : storeData.font_body,
         });
       }
 
@@ -113,7 +155,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
     fetchData();
-  }, []);
+  }, [isDemoMode]);
 
   const [isUploading, setIsUploading] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -177,8 +219,27 @@ export default function DashboardPage() {
       .from('products')
       .getPublicUrl(fileName);
 
-    setStoreForm((prev) => ({ ...prev, [field]: publicData.publicUrl }));
+    const newUrl = publicData.publicUrl;
+    
+    // Update local form
+    setStoreForm((prev) => ({ ...prev, [field]: newUrl }));
+    
+    // Auto-save to DB
+    if (store?.id) {
+       await db.from('stores').update({ [field]: newUrl }).eq('id', store.id);
+       setStore(prev => prev ? { ...prev, [field]: newUrl } : null);
+    }
+    
     setIsUploading(false);
+  };
+
+  const handleRemoveImage = async (field: 'logo_url' | 'banner_url') => {
+    setStoreForm(prev => ({ ...prev, [field]: '' }));
+    const db = await getDb();
+    if (store?.id) {
+      await (db as any).from('stores').update({ [field]: '' }).eq('id', store.id);
+      setStore(prev => prev ? { ...prev, [field]: '' } : null);
+    }
   };
 
   // Category handlers
@@ -331,6 +392,11 @@ export default function DashboardPage() {
     if (!store?.id) return;
     setStoreSaving(true);
     setStoreSaved(false);
+    if (isDemoMode) {
+      alert('¡Estás en Modo Demo! Regístrate para guardar tus propios cambios.');
+      setStoreSaving(false);
+      return;
+    }
     const db = await getDb();
     const { error } = await (db as any)
       .from('stores')
@@ -717,12 +783,21 @@ export default function DashboardPage() {
                       {storeForm.logo_url ? (
                         <>
                           <img src={storeForm.logo_url} className="w-full h-full object-contain p-2" />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white text-xs sm:text-sm font-medium">Cambiar</span></div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity gap-2 z-10 pointer-events-none">
+                             <span className="text-white text-xs font-medium bg-black/40 px-2 py-1 rounded">Cambiar</span>
+                          </div>
+                          <button 
+                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('logo_url'); }}
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-30 shadow-lg"
+                             title="Eliminar logo"
+                          >
+                             <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </>
                       ) : (
                         <span className="text-xs sm:text-sm text-[var(--color-text-tertiary)] group-hover:text-[var(--color-text-primary)] transition-colors cursor-pointer">Subir logo</span>
                       )}
-                      <input type="file" accept="image/*" onChange={(e) => handleConfigImageUpload(e, 'logo_url')} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
+                      <input type="file" accept="image/*" onChange={(e) => handleConfigImageUpload(e, 'logo_url')} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-20" />
                     </div>
                   </div>
                   <div>
@@ -731,12 +806,21 @@ export default function DashboardPage() {
                       {storeForm.banner_url ? (
                         <>
                           <img src={storeForm.banner_url} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="text-white text-xs sm:text-sm font-medium">Cambiar</span></div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity gap-2 z-10 pointer-events-none">
+                             <span className="text-white text-xs font-medium bg-black/40 px-2 py-1 rounded">Cambiar</span>
+                          </div>
+                          <button 
+                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('banner_url'); }}
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-30 shadow-lg"
+                             title="Eliminar portada"
+                          >
+                             <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </>
                       ) : (
                         <span className="text-xs sm:text-sm text-[var(--color-text-tertiary)] group-hover:text-[var(--color-text-primary)] transition-colors cursor-pointer">Subir portada</span>
                       )}
-                      <input type="file" accept="image/*" onChange={(e) => handleConfigImageUpload(e, 'banner_url')} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
+                      <input type="file" accept="image/*" onChange={(e) => handleConfigImageUpload(e, 'banner_url')} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-20" />
                     </div>
                   </div>
                 </div>
@@ -766,8 +850,8 @@ export default function DashboardPage() {
                         primary_color: '#1C1917',
                         accent_color: '#B45309',
                         background_color: '#FAFAF9',
-                        font_heading: 'sans',
-                        font_body: 'sans',
+                        font_heading: 'Montserrat',
+                        font_body: 'Lora',
                       }))}
                       className="flex items-center gap-1 text-xs sm:text-sm text-[var(--color-text-tertiary)] hover:text-[var(--color-error)] border border-[var(--color-border)] hover:border-[var(--color-error)]/40 px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg transition-colors bg-[var(--color-bg)]"
                     >
@@ -807,16 +891,44 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-2 gap-2 sm:gap-4">
                     <div>
                       <label className="block text-xs sm:text-sm text-[var(--color-text-tertiary)] mb-1">Títulos</label>
-                      <select value={storeForm.font_heading} onChange={(e) => setStoreForm({ ...storeForm, font_heading: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer">
-                        <option value="sans">Moderno (Sans)</option>
-                        <option value="serif">Elegante (Serif)</option>
+                      <select 
+                        value={storeForm.font_heading} 
+                        onChange={(e) => setStoreForm({ ...storeForm, font_heading: e.target.value })} 
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        style={{ fontFamily: storeForm.font_heading }}
+                      >
+                        <optgroup label="Sans Serif (Moderno)">
+                          <option value="Inter">Inter (Defecto)</option>
+                          <option value="Montserrat">Montserrat</option>
+                          <option value="Poppins">Poppins</option>
+                          <option value="Roboto">Roboto</option>
+                        </optgroup>
+                        <optgroup label="Serif (Elegante)">
+                          <option value="Playfair Display">Playfair Display</option>
+                          <option value="Lora">Lora</option>
+                          <option value="Merriweather">Merriweather</option>
+                        </optgroup>
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs sm:text-sm text-[var(--color-text-tertiary)] mb-1">Cuerpo textual</label>
-                      <select value={storeForm.font_body} onChange={(e) => setStoreForm({ ...storeForm, font_body: e.target.value })} className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer">
-                        <option value="sans">Moderno (Sans)</option>
-                        <option value="serif">Elegante (Serif)</option>
+                      <select 
+                        value={storeForm.font_body} 
+                        onChange={(e) => setStoreForm({ ...storeForm, font_body: e.target.value })} 
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-xs sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        style={{ fontFamily: storeForm.font_body }}
+                      >
+                        <optgroup label="Sans Serif">
+                          <option value="Inter">Inter</option>
+                          <option value="Montserrat">Montserrat</option>
+                          <option value="Roboto">Roboto</option>
+                          <option value="Open Sans">Open Sans</option>
+                        </optgroup>
+                        <optgroup label="Serif">
+                          <option value="Lora">Lora</option>
+                          <option value="Merriweather">Merriweather</option>
+                          <option value="EB Garamond">EB Garamond</option>
+                        </optgroup>
                       </select>
                     </div>
                   </div>
@@ -1012,9 +1124,16 @@ export default function DashboardPage() {
                   
                   {/* Catalog Miniature (CSS isolated via inline styles mapped to theme vars) */}
                   <div 
-                    className={`flex-1 overflow-y-auto overflow-x-hidden ${!mobilePreviewOpen ? 'h-[600px]' : ''} ${storeForm.font_body === 'serif' ? 'font-serif' : 'font-sans'}`}
-                    style={{ backgroundColor: storeForm.background_color, color: storeForm.primary_color }}
+                    className={`flex-1 overflow-y-auto overflow-x-hidden ${!mobilePreviewOpen ? 'h-[600px]' : ''}`}
+                    style={{ 
+                      backgroundColor: storeForm.background_color, 
+                      color: storeForm.primary_color,
+                      fontFamily: storeForm.font_body
+                    }}
                   >
+                    <style dangerouslySetInnerHTML={{ __html: `
+                      @import url('https://fonts.googleapis.com/css2?family=${storeForm.font_heading?.replace(' ', '+')}:wght@700&family=${storeForm.font_body?.replace(' ', '+')}:wght@400;500;600&display=swap');
+                    `}} />
                     {/* Hero Banner Area */}
                     <div className="relative h-48 overflow-hidden bg-black/10">
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
@@ -1022,16 +1141,28 @@ export default function DashboardPage() {
                         <img src={storeForm.banner_url} alt="Banner" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
                       ) : (
                         <div 
-                          className="w-full h-full" 
+                          className="w-full h-full relative" 
                           style={{ background: `linear-gradient(135deg, ${storeForm.primary_color} 0%, ${storeForm.accent_color} 100%)` }}
-                        />
+                        >
+                           {/* Pattern overlay for premium look */}
+                           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+                        </div>
                       )}
                       
                       <div className="absolute bottom-0 left-0 right-0 z-20 p-5">
-                        {storeForm.logo_url && (
-                          <img src={storeForm.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover mb-3 border border-white/20 shadow-lg" />
-                        )}
-                        <h1 className={`text-2xl font-bold text-white drop-shadow-md ${storeForm.font_heading === 'serif' ? 'font-serif' : 'font-sans'}`}>{storeForm.name || 'Mi Tienda'}</h1>
+                        <div className="flex items-center gap-3 mb-3">
+                          {storeForm.logo_url ? (
+                            <img src={storeForm.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover border border-white/20 shadow-lg" />
+                          ) : (
+                            <div 
+                              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-lg border border-white/20"
+                              style={{ backgroundColor: storeForm.primary_color }}
+                            >
+                              {storeForm.name?.[0] || 'L'}
+                            </div>
+                          )}
+                        </div>
+                        <h1 className="text-2xl font-bold text-white drop-shadow-md" style={{ fontFamily: storeForm.font_heading }}>{storeForm.name || 'Mi Tienda'}</h1>
                         <p className="text-sm text-white/90 drop-shadow-sm line-clamp-1">{storeForm.tagline || 'Eslogan de tu marca'}</p>
                       </div>
                     </div>
@@ -1205,10 +1336,12 @@ function StoreSetup({ onComplete }: { onComplete: (store: StoreType) => void }) 
       name,
       slug,
       whatsapp: '',
-      primary_color: '#1C1917',
+      primary_color: '#000000',
       accent_color: '#B45309',
       background_color: '#FAFAF9',
-      mode: 'retail',
+      font_heading: 'Montserrat',
+      font_body: 'Lora',
+      mode: 'retail' as 'retail' | 'restaurant',
       logo_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=200`,
       banner_url: ''
     }).select('*').single();

@@ -101,8 +101,18 @@ export default function TiendaPage() {
 
   const allCategories = ['Todos', ...categories.map((c) => c.name)];
 
+  const headingFont = store.font_heading === 'sans' || !store.font_heading ? 'Montserrat' : store.font_heading;
+  const bodyFont = store.font_body === 'sans' || !store.font_body ? 'Lora' : store.font_body;
+
   return (
-    <div className={`min-h-screen bg-[var(--color-bg)] transition-colors duration-500 ${store.font_body === 'serif' ? 'font-serif' : 'font-sans'}`}>
+    <div 
+      className="min-h-screen bg-[var(--color-bg)] transition-colors duration-500"
+      style={{ fontFamily: bodyFont }}
+    >
+      {/* Inject Google Fonts dynamically */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}:wght@700&family=${bodyFont.replace(' ', '+')}:wght@400;500;600&display=swap');
+      `}} />
       <header className="relative">
         <div className="relative h-[45vh] min-h-[300px] max-h-[500px] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
@@ -114,9 +124,11 @@ export default function TiendaPage() {
             />
           ) : (
             <div 
-              className="w-full h-full" 
+              className="w-full h-full relative" 
               style={{ background: `linear-gradient(135deg, ${store.primary_color} 0%, ${store.accent_color} 100%)` }}
-            />
+            >
+               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+            </div>
           )}
 
           <div className="absolute bottom-0 left-0 right-0 z-20 p-6 md:p-10">
@@ -127,14 +139,26 @@ export default function TiendaPage() {
                 transition={{ duration: 0.6 }}
                 className="text-white"
               >
-                {store.logo_url && (
-                  <img
-                    src={store.logo_url}
-                    alt={store.name}
-                    className="w-16 h-16 rounded-xl object-cover mb-4 border-2 border-white/20 shadow-lg"
-                  />
-                )}
-                <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 drop-shadow-md ${store.font_heading === 'serif' ? 'font-serif' : 'font-sans'}`}>
+                <div className="flex items-center gap-4 mb-4">
+                  {store.logo_url ? (
+                    <img
+                      src={store.logo_url}
+                      alt={store.name}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
+                    />
+                  ) : (
+                    <div 
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-xl border-2 border-white/20"
+                      style={{ backgroundColor: store.primary_color }}
+                    >
+                      {store.name?.[0] || 'L'}
+                    </div>
+                  )}
+                </div>
+                <h1 
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 drop-shadow-md"
+                  style={{ fontFamily: headingFont }}
+                >
                   {store.name}
                 </h1>
                 {store.tagline && (
