@@ -6,7 +6,7 @@ import {
   Plus, Pencil, Trash2, Store, Package, Image as ImageIcon,
   DollarSign, Tag, Save, X, Share2, Check, ExternalLink,
   QrCode, BarChart3, Palette, UtensilsCrossed, Eye,
-  MessageSquare, TrendingUp, ShoppingBag, AlertTriangle
+  MessageSquare, TrendingUp, ShoppingBag, AlertTriangle, LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { fetchAnalytics } from '@/lib/analytics';
@@ -321,6 +321,12 @@ export default function DashboardPage() {
     }
   };
 
+  const handleLogout = async () => {
+    const db = await getDb();
+    await db.auth.signOut();
+    window.location.href = '/login';
+  };
+
   const handleSaveStore = async () => {
     if (!store?.id) return;
     setStoreSaving(true);
@@ -390,6 +396,13 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">Ver catálogo</span>
             </Link>
             <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
+            <button
+               onClick={handleLogout}
+               className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-lg transition-colors"
+               title="Cerrar sesión"
+            >
+               <LogOut className="w-5 h-5" />
+            </button>
             <div className="w-8 h-8 bg-[var(--color-accent-subtle)] rounded-full flex items-center justify-center text-[var(--color-accent)] text-base font-medium">
               {store?.name?.[0] || 'L'}
             </div>
@@ -1005,8 +1018,13 @@ export default function DashboardPage() {
                     {/* Hero Banner Area */}
                     <div className="relative h-48 overflow-hidden bg-black/10">
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
-                      {storeForm.banner_url && (
+                      {storeForm.banner_url ? (
                         <img src={storeForm.banner_url} alt="Banner" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
+                      ) : (
+                        <div 
+                          className="w-full h-full" 
+                          style={{ background: `linear-gradient(135deg, ${storeForm.primary_color} 0%, ${storeForm.accent_color} 100%)` }}
+                        />
                       )}
                       
                       <div className="absolute bottom-0 left-0 right-0 z-20 p-5">
@@ -1192,7 +1210,7 @@ function StoreSetup({ onComplete }: { onComplete: (store: StoreType) => void }) 
       background_color: '#FAFAF9',
       mode: 'retail',
       logo_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=200`,
-      banner_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&h=400&fit=crop'
+      banner_url: ''
     }).select('*').single();
 
     if (data) {

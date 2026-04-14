@@ -1,10 +1,25 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Store, Sparkles, Share2, Smartphone } from 'lucide-react';
+import { Store, Sparkles, Share2, Smartphone, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function HomePage() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    checkUser();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       {/* Navigation */}
@@ -17,19 +32,32 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors hidden sm:inline"
-          >
-            Iniciar sesión
-          </Link>
-          <div className="w-px h-4 bg-[var(--color-border)] hidden sm:block mx-1" />
-          <Link
-            href="/register"
-            className="text-sm font-medium bg-[var(--color-text-primary)] text-white px-5 py-2.5 rounded-lg shadow-sm hover:bg-[var(--color-text-primary)]/90 transition-all hover:scale-105"
-          >
-            Crear tienda gratis
-          </Link>
+          {loading ? (
+            <div className="w-20 h-8 bg-[var(--color-surface-elevated)] animate-pulse rounded-lg" />
+          ) : user ? (
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium bg-[var(--color-text-primary)] text-white px-5 py-2.5 rounded-lg shadow-sm hover:bg-[var(--color-text-primary)]/90 transition-all hover:scale-105 flex items-center gap-2"
+            >
+              Dashboard <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors hidden sm:inline"
+              >
+                Iniciar sesión
+              </Link>
+              <div className="w-px h-4 bg-[var(--color-border)] hidden sm:block mx-1" />
+              <Link
+                href="/register"
+                className="text-sm font-medium bg-[var(--color-text-primary)] text-white px-5 py-2.5 rounded-lg shadow-sm hover:bg-[var(--color-text-primary)]/90 transition-all hover:scale-105"
+              >
+                Crear tienda gratis
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -47,8 +75,8 @@ export default function HomePage() {
               <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl italic text-[var(--color-accent)] mt-1">tu marca</span>
             </h1>
             <p className="text-xl md:text-2xl text-[var(--color-text-secondary)] font-light leading-relaxed mb-10">
-              Crea catálogos digitales personalizados que reflejan la esencia de tu negocio. 
-              Sin límites de productos, sin marcas de terceros.
+              Crea catálogos digitales que reflejan la esencia de tu negocio.
+              Personalización total, diseño exclusivo y sin publicidad.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -84,8 +112,8 @@ export default function HomePage() {
             },
             {
               icon: Smartphone,
-              title: 'Optimizado para móvil',
-              description: 'Diseñado para que se vea perfecto en cualquier dispositivo.',
+              title: 'Experiencia Mobile-First',
+              description: 'Tus clientes podrán navegar y comprar desde su celular con una rapidez y fluidez inigualables.',
             },
           ].map((feature, index) => (
             <motion.div
@@ -132,8 +160,10 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--color-border)] py-8 text-center">
-        <p className="text-[var(--color-text-tertiary)] text-sm">
-          © 2025 Catálogo Digital · Hecho con ♥ para emprendedores
+        <p className="text-[var(--color-text-tertiary)] text-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4">
+          <span>© 2025 Catálogo Digital</span>
+          <span className="hidden sm:inline">·</span>
+          <span>Desarrollado por <a href="https://bescobar-git-master-beck23s-projects.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] font-medium transition-colors">Bryan Escobar</a></span>
         </p>
       </footer>
     </div>

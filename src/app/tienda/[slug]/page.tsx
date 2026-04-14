@@ -106,11 +106,16 @@ export default function TiendaPage() {
       <header className="relative">
         <div className="relative h-[45vh] min-h-[300px] max-h-[500px] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
-          {store.banner_url && (
+          {store.banner_url ? (
             <img
               src={store.banner_url}
               alt={store.name}
               className="w-full h-full object-cover"
+            />
+          ) : (
+            <div 
+              className="w-full h-full" 
+              style={{ background: `linear-gradient(135deg, ${store.primary_color} 0%, ${store.accent_color} 100%)` }}
             />
           )}
 
