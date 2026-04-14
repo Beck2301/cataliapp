@@ -7,7 +7,7 @@ import { Store, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
 export default function LoginPage() {
-  const [state, formAction] = useActionState(
+  const [state, formAction, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       return login(formData)
     },
@@ -141,10 +141,10 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                disabled={pending}
+                disabled={isPending}
                 className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[var(--color-text-primary)] hover:bg-[var(--color-text-primary)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-text-primary)] disabled:opacity-50 transition-colors"
               >
-                {pending ? (
+                {isPending ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   'Iniciar Sesión'

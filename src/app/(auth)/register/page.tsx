@@ -7,7 +7,7 @@ import { Store, ArrowRight, AlertCircle, Sparkles, Eye, EyeOff, Check, X } from 
 import { createClient } from '@/utils/supabase/client'
 
 export default function RegisterPage() {
-  const [state, formAction] = useActionState(
+  const [state, formAction, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       const password = formData.get('password') as string;
       if (password.length < 6) {
