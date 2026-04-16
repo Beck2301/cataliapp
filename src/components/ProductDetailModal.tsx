@@ -10,12 +10,14 @@ interface ProductDetailModalProps {
   product: Product;
   open: boolean;
   onClose: () => void;
+  hasWhatsapp?: boolean;
 }
 
 export default function ProductDetailModal({
   product,
   open,
   onClose,
+  hasWhatsapp = true
 }: ProductDetailModalProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -66,18 +68,18 @@ export default function ProductDetailModal({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[var(--color-text-primary)] text-[var(--color-bg)] rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-lg"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="overflow-y-auto flex-1">
               {/* Image */}
-              <div className="aspect-[4/3] md:aspect-[16/9] relative bg-[var(--color-surface-elevated)]">
+              <div className="aspect-square relative bg-[var(--color-surface-elevated)] p-4">
                 <img
                   src={product.image_url || ''}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
 
@@ -93,7 +95,7 @@ export default function ProductDetailModal({
                     {product.name}
                   </h2>
                   {product.description && (
-                    <p className="text-sm text-[var(--color-text-secondary)] mt-2 leading-relaxed">
+                    <p className="text-sm text-[var(--color-text-primary)] mt-2 leading-relaxed opacity-90">
                       {product.description}
                     </p>
                   )}
@@ -135,9 +137,9 @@ export default function ProductDetailModal({
                 ))}
 
                 {/* Price & Quantity */}
-                <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)]">
-                  <div>
-                    <p className="text-xl sm:text-2xl font-medium" style={{ color: 'var(--color-accent)' }}>
+                <div className={`flex items-center ${hasWhatsapp ? 'justify-between pt-4 border-t border-[var(--color-border)]' : 'justify-center py-6'}`}>
+                  <div className={hasWhatsapp ? '' : 'text-center'}>
+                    <p className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-accent)' }}>
                       ${totalPrice.toFixed(2)}
                     </p>
                     {extraPrice > 0 && (
@@ -147,53 +149,57 @@ export default function ProductDetailModal({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-9 h-9 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="text-lg w-6 text-center font-medium">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-9 h-9 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {hasWhatsapp && (
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-10 h-10 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="text-lg w-6 text-center font-medium">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="w-10 h-10 rounded-lg border border-[var(--color-border)] flex items-center justify-center hover:bg-[var(--color-surface-elevated)] transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Add to Cart Button */}
-            <div className="p-5 border-t border-[var(--color-border)]">
-              <button
-                onClick={handleAdd}
-                disabled={added}
-                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-all ${
-                  added
-                    ? 'bg-[var(--color-success)] text-white'
-                    : 'bg-[var(--color-text-primary)] text-white hover:bg-[var(--color-text-primary)]/90'
-                }`}
-              >
-                {added ? (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    ¡Agregado!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5" />
-                    Agregar al pedido
-                  </>
-                )}
-              </button>
-            </div>
+            {hasWhatsapp && (
+              <div className="p-5 border-t border-[var(--color-border)]">
+                <button
+                  onClick={handleAdd}
+                  disabled={added}
+                  className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all ${
+                    added
+                      ? 'bg-[var(--color-success)] text-white'
+                      : 'bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:scale-[1.02] active:scale-[0.98]'
+                  }`}
+                >
+                  {added ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      ¡Agregado!
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-5 h-5" />
+                      Agregar al pedido
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </motion.div>
         </>
       )}

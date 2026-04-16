@@ -12,9 +12,10 @@ interface ProductCardProps {
   product: Product;
   index: number;
   storeId: string;
+  hasWhatsapp?: boolean;
 }
 
-export default function ProductCard({ product, index, storeId }: ProductCardProps) {
+export default function ProductCard({ product, index, storeId, hasWhatsapp = true }: ProductCardProps) {
   const [showDetail, setShowDetail] = useState(false);
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
@@ -41,11 +42,11 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
         onClick={handleOpenDetail}
       >
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-surface-elevated)]">
+        <div className="relative aspect-square overflow-hidden bg-[var(--color-surface)] group-hover:bg-[var(--color-surface-elevated)] transition-colors">
           <img
             src={product.image_url || ''}
             alt={product.name}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+            className={`w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 ${
               product.is_available === false ? 'grayscale opacity-60' : ''
             }`}
             loading="lazy"
@@ -54,12 +55,12 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
           {/* Top Left Badges (Stacked) */}
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 items-start z-10 w-[calc(100%-16px)]">
             {product.category && (
-              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-white/90 backdrop-blur-sm uppercase tracking-widest text-[var(--color-text-secondary)] shadow-sm max-w-full truncate">
+              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-[var(--color-text-primary)] text-[var(--color-bg)] uppercase tracking-widest font-bold shadow-sm max-w-full truncate">
                 {product.category.name}
               </span>
             )}
             {product.is_available !== false && product.compare_at_price && product.compare_at_price > product.price && (
-              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-[var(--color-error)] text-white uppercase tracking-widest font-medium shadow-sm max-w-full truncate">
+              <span className="px-2 text-[9px] sm:text-xs py-0.5 sm:py-1 bg-[var(--color-error)] text-white uppercase tracking-widest font-bold shadow-sm max-w-full truncate">
                 Oferta
               </span>
             )}
@@ -73,13 +74,13 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
           )}
 
           {/* Quick Add Button */}
-          {product.is_available !== false && (
+          {hasWhatsapp && product.is_available !== false && (
             <button
               onClick={handleQuickAdd}
               className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all z-10 ${
                 added
                   ? 'bg-[var(--color-success)] text-white scale-110'
-                  : 'bg-white/90 backdrop-blur-sm text-[var(--color-text-primary)] opacity-100 sm:opacity-0 group-hover:opacity-100 hover:bg-white hover:scale-110 shadow-sm'
+                  : 'bg-[var(--color-text-primary)] text-[var(--color-bg)] opacity-100 sm:opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg'
               }`}
             >
               {added ? (
@@ -105,7 +106,7 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
           </h3>
 
           {product.description && (
-            <p className="text-[10px] sm:text-sm leading-tight text-[var(--color-text-tertiary)] font-light opacity-90 line-clamp-2">
+            <p className="text-[10px] sm:text-sm leading-tight text-[var(--color-text-primary)] font-light opacity-90 line-clamp-2">
               {product.description}
             </p>
           )}
@@ -128,6 +129,7 @@ export default function ProductCard({ product, index, storeId }: ProductCardProp
         product={product}
         open={showDetail}
         onClose={() => setShowDetail(false)}
+        hasWhatsapp={hasWhatsapp}
       />
     </>
   );

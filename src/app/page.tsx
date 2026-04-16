@@ -11,6 +11,13 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for auth code in URL (failsafe for some OAuth redirects)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('code')) {
+      window.location.href = `/auth/callback${window.location.search}`;
+      return;
+    }
+
     const checkUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,10 +32,8 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="max-w-6xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center flex-shrink-0">
-            <Store className="w-4.5 h-4.5 text-white" />
-          </div>
-          <span className="text-lg font-[var(--font-sans)] hidden sm:inline">Cataliapp</span>
+          <img src="/logo_catali.svg" alt="Cataliapp Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain" />
+          <span className="text-lg font-[var(--font-sans)] hidden sm:inline font-bold">Cataliapp</span>
         </div>
 
         <div className="flex items-center gap-3">

@@ -113,20 +113,22 @@ export async function createCategory(storeId: string, name: string) {
 
   const displayOrder = existing ? existing.display_order + 1 : 0
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('categories')
     .insert({
       store_id: storeId,
       name: name.trim(),
       display_order: displayOrder,
     })
+    .select()
+    .single()
 
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath('/dashboard')
-  return { success: true }
+  return { success: true, data }
 }
 
 export async function updateCategory(categoryId: string, name: string) {

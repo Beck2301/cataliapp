@@ -78,9 +78,23 @@ export default function TiendaPage() {
   // Apply brand theme
   useEffect(() => {
     if (store) {
-      document.documentElement.style.setProperty('--color-text-primary', store.primary_color || '#1C1917');
-      document.documentElement.style.setProperty('--color-accent', store.accent_color || '#B45309');
-      document.documentElement.style.setProperty('--color-bg', store.background_color || '#FAFAF9');
+      const primary = store.primary_color || '#1C1917';
+      const accent = store.accent_color || '#B45309';
+      const bg = store.background_color || '#FAFAF9';
+      
+      document.documentElement.style.setProperty('--color-text-primary', primary);
+      document.documentElement.style.setProperty('--color-accent', accent);
+      document.documentElement.style.setProperty('--color-bg', bg);
+      
+      // Fixed solid colors for surfaces (no transparency as requested)
+      // If BG is dark, surface is slightly lighter. If BG is light, surface is slightly darker.
+      const isDark = bg === '#000000' || bg.startsWith('#1') || bg.startsWith('#2');
+      document.documentElement.style.setProperty('--color-border', isDark ? '#333333' : '#e5e7eb');
+      document.documentElement.style.setProperty('--color-surface', isDark ? '#0a0a0a' : '#f3f4f6');
+      document.documentElement.style.setProperty('--color-surface-elevated', isDark ? '#1a1a1a' : '#ffffff');
+      
+      document.documentElement.style.setProperty('--color-text-secondary', `${primary}cc`);
+      document.documentElement.style.setProperty('--color-text-tertiary', `${primary}80`);
     }
   }, [store]);
 
@@ -209,17 +223,19 @@ export default function TiendaPage() {
         </div>
       </header>
 
-      <button
-        onClick={() => setCartOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-[var(--color-text-primary)] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-all outline-none focus:ring-4 focus:ring-[var(--color-accent)]/50"
-      >
-        <ShoppingBag className="w-6 h-6" />
-        {itemCount > 0 && (
-          <span className="absolute -top-2 -right-2 w-6 h-6 bg-[var(--color-accent)] text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
-            {itemCount}
-          </span>
-        )}
-      </button>
+      {store.whatsapp && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-[var(--color-text-primary)] text-[var(--color-bg)] w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all outline-none focus:ring-4 focus:ring-[var(--color-accent)]/50 active:scale-95"
+        >
+          <ShoppingBag className="w-6 h-6" />
+          {itemCount > 0 && (
+            <span className="absolute -top-2 -right-2 w-6 h-6 bg-[var(--color-accent)] text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
+              {itemCount}
+            </span>
+          )}
+        </button>
+      )}
 
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-16">
         {store.description && (
@@ -227,8 +243,7 @@ export default function TiendaPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-[var(--color-text-secondary)] text-center max-w-2xl mx-auto mb-8 md:mb-12 text-sm md:text-lg font-medium px-2"
-            style={{ color: 'var(--color-text-secondary)' }}
+            className="text-[var(--color-text-primary)] text-center max-w-2xl mx-auto mb-8 md:mb-12 text-sm md:text-lg font-medium px-2"
           >
             {store.description}
           </motion.p>
@@ -297,7 +312,13 @@ export default function TiendaPage() {
             className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 md:gap-x-8 gap-y-10 md:gap-y-14"
           >
             {filteredProducts.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} storeId={store.id} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                index={index} 
+                storeId={store.id} 
+                hasWhatsapp={!!store.whatsapp}
+              />
             ))}
           </motion.div>
         </AnimatePresence>
@@ -317,15 +338,17 @@ export default function TiendaPage() {
             transition={{ delay: 0.8 }}
             className="mt-20 text-center"
           >
-            <a
-              href={`https://wa.me/${store.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-full text-lg font-bold shadow-xl shadow-[#25D366]/20 hover:bg-[#20bd5a] hover:-translate-y-1 transition-all"
-            >
-              <ShoppingBag className="w-6 h-6" />
-              Contactar por WhatsApp
-            </a>
+            {store.whatsapp && (
+              <a
+                href={`https://wa.me/${store.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 sm:gap-3 bg-[#25D366] text-white px-5 py-3 sm:px-8 sm:py-4 rounded-full text-sm sm:text-lg font-bold shadow-xl shadow-[#25D366]/20 hover:bg-[#20bd5a] hover:-translate-y-1 transition-all whitespace-nowrap"
+              >
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
+                Contactar por WhatsApp
+              </a>
+            )}
           </motion.div>
         )}
       </main>

@@ -6,8 +6,16 @@ import {
   Plus, Pencil, Trash2, Store, Package, Image as ImageIcon,
   DollarSign, Tag, Save, X, Share2, Check, ExternalLink,
   QrCode, BarChart3, Palette, UtensilsCrossed, Eye,
-  MessageSquare, TrendingUp, ShoppingBag, AlertTriangle, LogOut
+  MessageSquare, TrendingUp, ShoppingBag, AlertTriangle, LogOut,
+  MapPin, Clock, ChevronDown
 } from 'lucide-react';
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
 import Link from 'next/link';
 import { fetchAnalytics } from '@/lib/analytics';
 import QRModal from '@/components/QRModal';
@@ -135,6 +143,7 @@ function DashboardContent() {
   const [categoryError, setCategoryError] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [inlineCategoryName, setInlineCategoryName] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -214,7 +223,16 @@ function DashboardContent() {
 
   // Category handlers
   const handleCreateCategory = async () => {
-    if (!store || !newCategoryName.trim()) return;
+    if (!store || !newCategoryName.trim() || isCreatingCategory) return;
+    
+    // Check for duplicates
+    const exists = categories.some(c => c.name.toLowerCase() === newCategoryName.trim().toLowerCase());
+    if (exists) {
+      setCategoryError('Esta categoría ya existe.');
+      return;
+    }
+
+    setIsCreatingCategory(true);
     setCategoryError('');
     const result = await createCategory(store.id, newCategoryName.trim());
     if (result.error) {
@@ -230,6 +248,7 @@ function DashboardContent() {
         .order('display_order');
       setCategories((cats || []) as Category[]);
     }
+    setIsCreatingCategory(false);
   };
 
   const handleUpdateCategory = async (id: string) => {
@@ -273,11 +292,29 @@ function DashboardContent() {
   };
 
   const handleInlineCreateCategory = async () => {
-    if (!store || !inlineCategoryName.trim()) return;
-    const result = await createCategory(store.id, inlineCategoryName.trim());
-    if (result.success) {
+    if (!store || !inlineCategoryName.trim() || isCreatingCategory) return;
+
+    const trimmedName = inlineCategoryName.trim();
+    
+    // Check for duplicates
+    const existing = categories.find(c => c.name.toLowerCase() === trimmedName.toLowerCase());
+    if (existing) {
+      // If it exists, just select it and close
+      setFormData({ ...formData, category: existing.id || '' });
       setInlineCategoryName('');
       setShowNewCategoryInput(false);
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    const result = await createCategory(store.id, trimmedName);
+    if (result.success && result.data) {
+      setInlineCategoryName('');
+      setShowNewCategoryInput(false);
+      
+      // Select the new category in the form immediately
+      setFormData(prev => ({ ...prev, category: (result.data as any).id }));
+
       // Refresh categories
       const db = await getDb();
       const { data: cats } = await (db as any)
@@ -287,6 +324,7 @@ function DashboardContent() {
         .order('display_order');
       setCategories((cats || []) as Category[]);
     }
+    setIsCreatingCategory(false);
   };
 
   const resetForm = () => {
@@ -410,9 +448,7 @@ function DashboardContent() {
         <header className="bg-[var(--color-surface)] border-b border-[var(--color-border)]">
           <div className="max-w-6xl mx-auto w-full px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center flex-shrink-0">
-              <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
+            <img src="/logo_catali.svg" alt="Cataliapp Logo" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
             <div className="min-w-0">
               <h1 className="text-base sm:text-2xl font-[var(--font-sans)] truncate leading-tight">{store?.name}</h1>
               <p className="hidden sm:block text-sm text-[var(--color-text-tertiary)]">Panel de administración</p>
@@ -610,6 +646,7 @@ function DashboardContent() {
                             type="text"
                             value={inlineCategoryName}
                             onChange={(e) => setInlineCategoryName(e.target.value)}
+                            disabled={isCreatingCategory}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleInlineCreateCategory();
                               if (e.key === 'Escape') {
@@ -619,15 +656,15 @@ function DashboardContent() {
                             }}
                             placeholder="Nombre de la categoría..."
                             autoFocus
-                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-primary)]"
+                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg text-base focus:outline-none focus:border-[var(--color-text-primary)] disabled:opacity-50"
                           />
                           <button
                             type="button"
                             onClick={handleInlineCreateCategory}
-                            disabled={!inlineCategoryName.trim()}
+                            disabled={!inlineCategoryName.trim() || isCreatingCategory}
                             className="px-3 py-2 bg-[var(--color-text-primary)] text-white rounded-lg hover:bg-[var(--color-text-primary)]/90 transition-colors disabled:opacity-50"
                           >
-                            <Check className="w-5 h-5" />
+                            <Check className={`w-5 h-5 ${isCreatingCategory ? 'animate-pulse' : ''}`} />
                           </button>
                           <button
                             type="button"
@@ -777,7 +814,7 @@ function DashboardContent() {
                           </div>
                           <button 
                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('logo_url'); }}
-                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-30 shadow-lg"
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-10 shadow-lg"
                              title="Eliminar logo"
                           >
                              <Trash2 className="w-3.5 h-3.5" />
@@ -800,7 +837,7 @@ function DashboardContent() {
                           </div>
                           <button 
                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage('banner_url'); }}
-                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-30 shadow-lg"
+                             className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-10 shadow-lg"
                              title="Eliminar portada"
                           >
                              <Trash2 className="w-3.5 h-3.5" />
@@ -848,24 +885,24 @@ function DashboardContent() {
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Texto Principal</label>
-                      <div className="flex items-center gap-3 sm:gap-2">
-                        <input type="color" value={storeForm.primary_color} onChange={(e) => setStoreForm({ ...storeForm, primary_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0 text-center sm:text-left">
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-[var(--color-text-tertiary)] mb-2">Texto Principal</label>
+                      <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.primary_color} onChange={(e) => setStoreForm({ ...storeForm, primary_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border border-[var(--color-border)] p-0.5" />
                         <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.primary_color}</span>
                       </div>
                     </div>
-                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Color de precios</label>
-                      <div className="flex items-center gap-3 sm:gap-2">
-                        <input type="color" value={storeForm.accent_color} onChange={(e) => setStoreForm({ ...storeForm, accent_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0 text-center sm:text-left">
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-[var(--color-text-tertiary)] mb-2">Color de precios</label>
+                      <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.accent_color} onChange={(e) => setStoreForm({ ...storeForm, accent_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border border-[var(--color-border)] p-0.5" />
                         <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.accent_color}</span>
                       </div>
                     </div>
-                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0">
-                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1 uppercase tracking-wider font-bold">Fondo App</label>
-                      <div className="flex items-center gap-3 sm:gap-2">
-                        <input type="color" value={storeForm.background_color} onChange={(e) => setStoreForm({ ...storeForm, background_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border-0 p-0" />
+                    <div className="bg-[var(--color-bg)] p-2 sm:p-0 rounded-xl sm:rounded-none border border-[var(--color-border)] sm:border-0 text-center sm:text-left">
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-[var(--color-text-tertiary)] mb-2">Fondo App</label>
+                      <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-2">
+                        <input type="color" value={storeForm.background_color} onChange={(e) => setStoreForm({ ...storeForm, background_color: e.target.value })} className="w-10 h-10 sm:w-10 sm:h-10 rounded-lg cursor-pointer border border-[var(--color-border)] p-0.5" />
                         <span className="text-sm sm:text-xs text-[var(--color-text-secondary)] font-mono">{storeForm.background_color}</span>
                       </div>
                     </div>
@@ -874,22 +911,21 @@ function DashboardContent() {
 
                 {/* Typography */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm sm:text-base font-medium text-[var(--color-text-primary)] mb-2 sm:mb-3 mt-3 sm:mt-4">
+                  <label className="flex items-center gap-2 text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-widest mb-2 sm:mb-3 mt-3 sm:mt-4">
                     <span className="font-serif italic font-bold text-base sm:text-lg">Aa</span> Tipografía
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-sm text-[var(--color-text-tertiary)] mb-1">Títulos (Google Fonts)</label>
+                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">Títulos (Google Fonts)</label>
                       <select 
                         value={storeForm.font_heading} 
                         onChange={(e) => setStoreForm({ ...storeForm, font_heading: e.target.value })} 
-                        className="w-full px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
                         style={{ fontFamily: storeForm.font_heading }}
                       >
-                        <optgroup label="Sans Serif (Moderno)">
-                          <option value="Inter">Inter (Defecto)</option>
+                        <optgroup label="Sans Serif (Moderna)">
                           <option value="Montserrat">Montserrat</option>
-                          <option value="Poppins">Poppins</option>
+                          <option value="Inter">Inter</option>
                           <option value="Roboto">Roboto</option>
                         </optgroup>
                         <optgroup label="Serif (Elegante)">
@@ -900,11 +936,11 @@ function DashboardContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-tertiary)] mb-1">Cuerpo textual (Párrafos)</label>
+                      <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">Cuerpo textual (Párrafos)</label>
                       <select 
                         value={storeForm.font_body} 
                         onChange={(e) => setStoreForm({ ...storeForm, font_body: e.target.value })} 
-                        className="w-full px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)] appearance-none cursor-pointer"
                         style={{ fontFamily: storeForm.font_body }}
                       >
                         <optgroup label="Sans Serif">
@@ -925,23 +961,32 @@ function DashboardContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Dirección</label>
-                    <input type="text" value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">Dirección</label>
+                    <input type="text" value={storeForm.address} onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                   <div>
-                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Horario</label>
-                    <input type="text" value={storeForm.hours} onChange={(e) => setStoreForm({ ...storeForm, hours: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">Horario</label>
+                    <input type="text" value={storeForm.hours} onChange={(e) => setStoreForm({ ...storeForm, hours: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">Instagram</label>
-                    <input type="text" value={storeForm.instagram} onChange={(e) => setStoreForm({ ...storeForm, instagram: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">Usuario de Insta</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-tertiary)] pointer-events-none">@</span>
+                      <input 
+                        type="text" 
+                        placeholder="usuario" 
+                        value={storeForm.instagram.replace('@', '')} 
+                        onChange={(e) => setStoreForm({ ...storeForm, instagram: e.target.value.replace('@', '') })} 
+                        className="w-full pl-7 pr-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)]" 
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm sm:text-base text-[var(--color-text-secondary)] mb-1 sm:mb-2">WhatsApp</label>
-                    <input type="text" value={storeForm.whatsapp} onChange={(e) => setStoreForm({ ...storeForm, whatsapp: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg text-sm sm:text-base focus:outline-none focus:border-[var(--color-text-tertiary)]" />
+                    <label className="block text-xs text-[var(--color-text-tertiary)] mb-1.5 font-medium">WhatsApp</label>
+                    <input type="text" placeholder="Ej: 50212345678" value={storeForm.whatsapp} onChange={(e) => setStoreForm({ ...storeForm, whatsapp: e.target.value })} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-sm text-sm focus:outline-none focus:border-[var(--color-text-tertiary)]" />
                   </div>
                 </div>
 
@@ -1117,15 +1162,21 @@ function DashboardContent() {
                     style={{ 
                       backgroundColor: storeForm.background_color, 
                       color: storeForm.primary_color,
-                      fontFamily: storeForm.font_body
-                    }}
+                      fontFamily: storeForm.font_body,
+                      '--color-text-primary': storeForm.primary_color,
+                      '--color-accent': storeForm.accent_color,
+                      '--color-bg': storeForm.background_color,
+                      '--color-border': (storeForm.background_color === '#000000' || storeForm.background_color.startsWith('#1')) ? '#333333' : '#e5e7eb',
+                      '--color-surface': (storeForm.background_color === '#000000' || storeForm.background_color.startsWith('#1')) ? '#0a0a0a' : '#f3f4f6',
+                      '--color-surface-elevated': (storeForm.background_color === '#000000' || storeForm.background_color.startsWith('#1')) ? '#1a1a1a' : '#ffffff',
+                    } as React.CSSProperties}
                   >
                     <style dangerouslySetInnerHTML={{ __html: `
                       @import url('https://fonts.googleapis.com/css2?family=${storeForm.font_heading?.replace(' ', '+')}:wght@700&family=${storeForm.font_body?.replace(' ', '+')}:wght@400;500;600&display=swap');
                     `}} />
                     {/* Hero Banner Area */}
-                    <div className="relative h-48 overflow-hidden bg-black/10">
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70 z-10" />
+                    <div className="relative h-[35vh] min-h-[200px] overflow-hidden bg-black/10">
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90 z-10" />
                       {storeForm.banner_url ? (
                         <img src={storeForm.banner_url} alt="Banner" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
                       ) : (
@@ -1141,59 +1192,98 @@ function DashboardContent() {
                       <div className="absolute bottom-0 left-0 right-0 z-20 p-5">
                         <div className="flex items-center gap-3 mb-3">
                           {storeForm.logo_url ? (
-                            <img src={storeForm.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover border border-white/20 shadow-lg" />
+                            <img src={storeForm.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover border-2 border-white/30 shadow-lg" />
                           ) : (
                             <div 
-                              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-lg border border-white/20"
+                              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-lg border-2 border-white/30"
                               style={{ backgroundColor: storeForm.primary_color }}
                             >
                               {storeForm.name?.[0] || 'L'}
                             </div>
                           )}
+                          <div>
+                            <h1 className="text-xl font-black text-white drop-shadow-md" style={{ fontFamily: storeForm.font_heading }}>{storeForm.name || 'Mi Tienda'}</h1>
+                            {storeForm.tagline && <p className="text-xs text-white/80 font-medium drop-shadow-sm line-clamp-1">{storeForm.tagline}</p>}
+                          </div>
                         </div>
-                        <h1 className="text-2xl font-bold text-white drop-shadow-md" style={{ fontFamily: storeForm.font_heading }}>{storeForm.name || 'Mi Tienda'}</h1>
-                        <p className="text-sm text-white/90 drop-shadow-sm line-clamp-1">{storeForm.tagline || 'Eslogan de tu marca'}</p>
+
+                        {/* Info Chips */}
+                        <div className="flex flex-wrap gap-1.5 text-[9px] text-white/80">
+                          {storeForm.address && (
+                            <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                              <MapPin className="w-2.5 h-2.5" /> {storeForm.address}
+                            </span>
+                          )}
+                          {storeForm.hours && (
+                            <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                              <Clock className="w-2.5 h-2.5" /> {storeForm.hours}
+                            </span>
+                          )}
+                          {storeForm.instagram && (
+                            <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                              <InstagramIcon className="w-2.5 h-2.5" /> {storeForm.instagram}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     {/* Content Area */}
-                    <div className="p-5">
+                    <div className="p-4 sm:p-5">
                        {storeForm.description && (
-                         <p className="text-sm opacity-80 text-center mb-6">{storeForm.description}</p>
+                         <p className="text-[var(--color-text-primary)] text-center max-w-2xl mx-auto mb-8 md:mb-12 text-xs md:text-sm font-medium px-2 italic opacity-90">
+                           {storeForm.description}
+                         </p>
                        )}
 
-                       {/* Category Tabs with example text */}
-                       <div className="flex justify-center gap-2 mb-8 flex-wrap">
-                         {['Todos', 'Felinos', 'Premium', 'Oferta'].map((cat, i) => (
-                           <div key={cat} className={`px-4 py-1.5 rounded-full text-xs font-semibold ${i === 0 ? 'text-white' : 'border opacity-60'}`}
-                             style={i === 0 ? { backgroundColor: storeForm.primary_color } : { borderColor: storeForm.primary_color, color: storeForm.primary_color }}>
-                             {cat}
+                       {/* Category Dropdown (Matches real store) */}
+                       <div className="flex justify-center mb-8 px-4 sm:px-0">
+                         <div className="relative w-full max-w-[200px]">
+                           <div className="w-full flex items-center justify-between px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-[10px] font-semibold text-[var(--color-text-primary)] shadow-sm">
+                             <span className="tracking-wide">Todos los productos</span>
+                             <ChevronDown className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
                            </div>
-                         ))}
+                         </div>
                        </div>
 
-                       {/* Preview Product Cards with sample data */}
-                       <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+                       {/* Preview Product Cards (Sync with real grid - 3 cols on desktop) */}
+                       <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-8">
                          {([
-                           { name: 'Gatito Naranja', desc: 'Muy suavecito', price: '$250.00', cat: 'Nuevo', img: 'https://loremflickr.com/300/375/kitten?lock=1' },
-                           { name: 'Michi Gris', desc: 'Amoroso y tranquilo', price: '$180.00', cat: 'Popular', img: 'https://loremflickr.com/300/375/kitten?lock=2' },
-                           { name: 'Gatita Blanca', desc: 'Ideal para regalo', price: '$320.00', cat: 'Oferta', img: 'https://loremflickr.com/300/375/kitten?lock=3' },
-                           { name: 'Minino Negro', desc: 'Elegante y curioso', price: '$210.00', cat: 'Nuevo', img: 'https://loremflickr.com/300/375/kitten?lock=4' },
+                           { name: 'Gatito Naranja', desc: 'Muy suavecito y juguetón', price: 250, compare: 300, cat: 'Nuevo', img: 'https://loremflickr.com/300/375/kitten?lock=1' },
+                           { name: 'Michi Gris', desc: 'Amoroso y tranquilo', price: 180, compare: null, cat: 'Popular', img: 'https://loremflickr.com/300/375/kitten?lock=2' },
+                           { name: 'Gatita Blanca', desc: 'Ideal para departamento', price: 320, compare: 400, cat: 'Oferta', img: 'https://loremflickr.com/300/375/kitten?lock=3' },
+                           { name: 'Minino Negro', desc: 'Elegante y curioso', price: 210, compare: null, cat: 'Nuevo', img: 'https://loremflickr.com/300/375/kitten?lock=4' },
+                           { name: 'Michi Rayado', desc: 'Activo y divertido', price: 240, compare: null, cat: 'Nuevo', img: 'https://loremflickr.com/300/375/kitten?lock=5' },
+                           { name: 'Gata Calico', desc: 'Única y especial', price: 380, compare: 450, cat: 'Premium', img: 'https://loremflickr.com/300/375/kitten?lock=6' },
                          ] as const).map((product, i) => (
-                           <div key={i} className="group cursor-pointer">
-                             <div className="relative aspect-[4/5] overflow-hidden">
-                               <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
-                               <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/90 backdrop-blur-sm text-[9px] uppercase tracking-widest" style={{ color: storeForm.primary_color }}>
-                                 {product.cat}
-                               </span>
-                               <div className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
-                                 <Plus className="w-3.5 h-3.5" style={{ color: storeForm.primary_color }} />
+                           <div key={i} className="group">
+                             <div className="relative aspect-square overflow-hidden bg-[var(--color-surface)]">
+                               <img src={product.img} alt={product.name} className="w-full h-full object-contain p-2" />
+                               
+                               {/* Badges */}
+                               <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5 items-start z-10">
+                                 <span className="px-1.5 py-0.5 bg-[var(--color-text-primary)] text-[var(--color-bg)] text-[7px] uppercase tracking-widest font-bold shadow-sm">
+                                   {product.cat}
+                                 </span>
+                                 {product.compare && (
+                                   <span className="px-1.5 py-0.5 bg-[var(--color-error)] text-white text-[7px] uppercase tracking-widest font-bold shadow-sm">
+                                     Oferta
+                                   </span>
+                                 )}
+                               </div>
+
+                               <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-[var(--color-text-primary)] text-[var(--color-bg)] flex items-center justify-center shadow-lg">
+                                 <Plus className="w-3 h-3" />
                                </div>
                              </div>
-                             <div className="mt-3 space-y-1">
-                               <h3 className="text-sm font-medium leading-tight" style={{ color: storeForm.primary_color }}>{product.name}</h3>
-                               <p className="text-xs opacity-60 line-clamp-1" style={{ color: storeForm.primary_color }}>{product.desc}</p>
-                               <p className="text-sm font-medium" style={{ color: storeForm.accent_color }}>{product.price}</p>
+                             
+                             <div className="mt-2 space-y-0.5">
+                               <h3 className="text-[10px] font-bold leading-tight line-clamp-1" style={{ color: storeForm.primary_color, fontFamily: storeForm.font_heading }}>{product.name}</h3>
+                               <p className="text-[9px] text-[var(--color-text-primary)] opacity-80 font-light line-clamp-1">{product.desc}</p>
+                               <div className="flex items-center gap-1 pt-0.5">
+                                 <p className="text-[10px] font-bold" style={{ color: storeForm.accent_color }}>${product.price.toFixed(2)}</p>
+                                 {product.compare && <p className="text-[8px] text-[var(--color-text-tertiary)] line-through">${product.compare.toFixed(2)}</p>}
+                               </div>
                              </div>
                            </div>
                          ))}
@@ -1202,7 +1292,7 @@ function DashboardContent() {
                     
                     {/* WhatsApp CTA — matches real catalog bottom button */}
                     <div className="px-5 pb-8 mt-4 text-center">
-                      <div className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-full text-sm font-bold shadow-lg">
+                      <div className="inline-flex items-center gap-2 bg-[#25D366] text-white px-5 py-3 rounded-full text-xs font-bold shadow-lg whitespace-nowrap">
                         <ShoppingBag className="w-4 h-4" />
                         Contactar por WhatsApp
                       </div>
@@ -1345,23 +1435,26 @@ function StoreSetup({ onComplete }: { onComplete: (store: StoreType) => void }) 
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] p-8 rounded-2xl shadow-xl">
-        <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mb-6 border border-orange-500/20">
-          <Store className="w-6 h-6 text-orange-500" />
-        </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] p-6 sm:p-8 rounded-2xl shadow-xl">
+        <img src="/logo_catali.svg" alt="Cataliapp Logo" className="w-12 h-12 rounded-xl mb-6 shadow-sm" />
         <h2 className="text-2xl font-[var(--font-sans)] mb-2">Crea tu tienda</h2>
-        <p className="text-[var(--color-text-tertiary)] mb-6 text-sm">Completa los detalles para comenzar a administrar tu catálogo y tus productos.</p>
+        <p className="text-[var(--color-text-tertiary)] mb-6 text-sm leading-relaxed">Completa los detalles para comenzar a administrar tu catálogo y tus productos.</p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Nombre de la tienda</label>
-            <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg focus:outline-none focus:border-orange-500 transition-colors text-[var(--color-text-primary)]" placeholder="Ej. Mi Tienda Increíble" />
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Nombre de la tienda</label>
+            <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2.5 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-lg focus:outline-none focus:border-orange-500 transition-colors text-[var(--color-text-primary)]" placeholder="Ej. Urban Store" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">URL de la tienda</label>
-            <div className="flex items-center">
-              <span className="px-3 py-2 border border-r-0 border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-tertiary)] rounded-l-lg text-sm">catalogo.com/tienda/</span>
-              <input required type="text" value={slug} onChange={e => setSlug(e.target.value)} className="w-full px-3 py-2 border border-[var(--color-border)] bg-[var(--color-bg)] rounded-r-lg focus:outline-none focus:border-orange-500 transition-colors text-[var(--color-text-primary)]" />
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5 flex items-center justify-between">
+              <span>URL de la tienda</span>
+              <span className="text-[10px] text-[var(--color-text-tertiary)] font-normal italic">Auto-generado</span>
+            </label>
+            <div className="flex items-stretch opacity-80">
+              <span className="px-2.5 py-2 border border-r-0 border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-tertiary)] rounded-l-lg text-[10px] sm:text-sm flex items-center whitespace-nowrap flex-shrink-0">
+                catalogo.com/tienda/
+              </span>
+              <input readOnly type="text" value={slug} className="min-w-0 flex-1 px-3 py-2 border border-[var(--color-border)] bg-[var(--color-surface-elevated)] rounded-r-lg text-[var(--color-text-secondary)] cursor-default focus:outline-none" />
             </div>
           </div>
           

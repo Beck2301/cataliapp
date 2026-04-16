@@ -43,10 +43,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-[var(--color-bg)] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-[var(--font-sans)] text-[var(--color-text-primary)]">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="flex justify-center items-center gap-2 mb-6 group">
-          <div className="w-10 h-10 bg-[var(--color-text-primary)] rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
-            <Store className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-3xl font-bold tracking-tight">Catálogo</span>
+          <img src="/logo_catali.svg" alt="Cataliapp Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain transition-transform group-hover:scale-105" />
         </Link>
         <div className="flex justify-center mb-4">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)] ring-1 ring-inset ring-[var(--color-accent)]/20">
